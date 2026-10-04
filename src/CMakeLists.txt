@@ -1,4 +1,9 @@
-add_library(hearth_core STATIC version.cpp)
+add_library(
+  hearth_core STATIC
+  version.cpp
+  net/io.cpp
+  net/listener.cpp
+  net/socket.cpp)
 
 target_include_directories(hearth_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(hearth_core PUBLIC hearth_options Threads::Threads)

@@ -1,7 +1,7 @@
 # Progress
 
 - [x] 1. Scaffold: CMake, presets, folder layout, hello-world test
-- [ ] 2. Socket layer + single-threaded fixed-response server (verified with curl)
+- [x] 2. Socket layer + single-threaded fixed-response server (verified with curl)
 - [ ] 3. Incremental parser + tests
 - [ ] 4. Router + static files + tests
 - [ ] 5. Thread pool + keep-alive + timeouts + limits + integration tests

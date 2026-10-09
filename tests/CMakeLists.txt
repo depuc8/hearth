@@ -21,7 +21,9 @@ add_executable(
   version_test.cpp
   net_test.cpp
   http_test.cpp
-  parser_test.cpp)
+  parser_test.cpp
+  router_test.cpp
+  static_test.cpp)
 target_link_libraries(hearth_tests PRIVATE hearth_core GTest::gtest_main)
 
 include(GoogleTest)

@@ -91,3 +91,39 @@ question, the choice, and why.
   slash) resolve against `/`. Kept simple; noted under limitations.
 - **Files are read fully into memory.** That's fine for a demo site and
   bounded by what's on disk. `sendfile()`/streaming is on the roadmap.
+
+## Concurrency model
+
+- **Event loop + worker pool, not "one connection per pooled task".** Giving
+  each connection a worker for its whole life means N idle keep-alive clients
+  pin N workers, so with `--threads 8` the 9th client waits up to the idle
+  timeout. Instead one loop thread poll()s the listener and all *idle*
+  connections. A readable connection is removed from the poll set and handed
+  to the pool; the worker parses and answers what's buffered and gives it
+  back through a mutex-protected queue plus a self-pipe wakeup. Each
+  Connection is touched by one thread at a time, and the handoffs go through
+  mutexes, so there's no data race on connection state.
+- **Connections are `shared_ptr`** because `std::function` needs copyable
+  callables. A unique_ptr capture would need a hand-rolled move-only function
+  type.
+- **Fairness**: a worker does at most 16 reads (16 KiB each) per wakeup and
+  then yields the connection back. poll() is level-triggered, so leftover
+  data brings it straight back.
+- **Writes block the worker** (poll for POLLOUT with a 5 s write timeout). An
+  output buffer in the event loop would avoid that. Responses here are small,
+  so this is accepted and documented.
+- **The idle timeout resets on every received byte.** A trickling (slowloris)
+  client can stay connected; a per-request header deadline is on the roadmap.
+- **Error responses use a lingering close**: send the error, `shutdown(WR)`,
+  then discard input for up to 200 ms or 256 KiB. Closing with unread data
+  makes the kernel send an RST that can destroy the 413/431 before the client
+  reads it.
+- **Default per-connection request cap is 1000** (same as nginx's
+  `keepalive_requests`).
+- **Graceful shutdown**: SIGINT/SIGTERM are blocked in every thread and
+  received with `sigwait()` on a dedicated thread, which calls
+  `Server::stop()`. That avoids async-signal-safety problems entirely. stop()
+  closes the listener and idle connections; in-flight requests finish and
+  are answered with `Connection: close`.
+- **Sanitizer presets use Clang.** The dev machine had compiler-rt but not
+  GCC's libasan/libtsan, and Clang's TSan is the reference implementation.

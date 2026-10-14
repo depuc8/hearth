@@ -14,6 +14,7 @@ add_library(
   router/router.cpp
   server/app.cpp
   server/cli.cpp
+  server/metrics.cpp
   server/server.cpp
   server/thread_pool.cpp
   static/static_handler.cpp)

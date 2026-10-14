@@ -32,11 +32,11 @@ set(HEARTH_SANITIZE
 include(cmake/HearthOptions.cmake)
 
 find_package(Threads REQUIRED)
+enable_testing()
 
 add_subdirectory(src)
 
 if(HEARTH_BUILD_TESTS)
-  enable_testing()
   add_subdirectory(tests)
 endif()
 

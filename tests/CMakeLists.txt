@@ -26,7 +26,8 @@ add_executable(
   static_test.cpp
   cli_test.cpp
   thread_pool_test.cpp
-  integration_test.cpp)
+  integration_test.cpp
+  metrics_test.cpp)
 target_include_directories(hearth_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(hearth_tests PRIVATE hearth_core GTest::gtest_main)
 

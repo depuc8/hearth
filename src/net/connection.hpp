@@ -5,6 +5,7 @@
 #include "http/response.hpp"
 #include "net/socket.hpp"
 #include "router/router.hpp"
+#include "server/metrics.hpp"
 
 #include <chrono>
 #include <cstddef>
@@ -15,6 +16,8 @@ struct ConnectionOptions {
   http::ParserLimits limits;
   std::size_t max_requests = 1000;
   std::chrono::milliseconds write_timeout{5000};
+  /// Optional; must outlive every Connection that uses it.
+  server::Metrics *metrics = nullptr;
 };
 
 /// One client connection: owns the socket and the incremental parser, and
@@ -28,6 +31,12 @@ public:
 
   Connection(Socket socket, const router::Router &router,
              ConnectionOptions options);
+  ~Connection();
+
+  Connection(const Connection &) = delete;
+  Connection &operator=(const Connection &) = delete;
+  Connection(Connection &&) = delete;
+  Connection &operator=(Connection &&) = delete;
 
   [[nodiscard]] int fd() const noexcept { return socket_.fd(); }
   [[nodiscard]] Clock::time_point last_activity() const noexcept {

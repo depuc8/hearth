@@ -29,7 +29,17 @@ const std::string &server_header() {
 Connection::Connection(Socket socket, const router::Router &router,
                        ConnectionOptions options)
     : socket_(std::move(socket)), router_(router), options_(options),
-      parser_(options.limits), last_activity_(Clock::now()) {}
+      parser_(options.limits), last_activity_(Clock::now()) {
+  if (options_.metrics != nullptr) {
+    options_.metrics->connection_opened();
+  }
+}
+
+Connection::~Connection() {
+  if (options_.metrics != nullptr) {
+    options_.metrics->connection_closed();
+  }
+}
 
 Connection::Outcome Connection::on_readable(bool draining) {
   std::array<char, kReadChunk> buffer{};
@@ -69,6 +79,9 @@ Connection::Outcome Connection::on_readable(bool draining) {
 }
 
 bool Connection::respond(const http::Request &request, bool keep_alive) {
+  if (options_.metrics != nullptr) {
+    options_.metrics->request_received();
+  }
   http::Response response;
   try {
     response = router_.dispatch(request);
@@ -84,6 +97,9 @@ bool Connection::respond(const http::Request &request, bool keep_alive) {
 }
 
 void Connection::reject(http::Status status) {
+  if (options_.metrics != nullptr) {
+    options_.metrics->request_received();
+  }
   auto response = http::Response::error(status);
   response.headers.set("Connection", "close");
   if (!write(response, true)) {

@@ -36,8 +36,7 @@ bool relative_from_url(std::string_view path, fs::path &out) {
 }
 
 Status status_for(const std::error_code &ec) {
-  return ec == std::errc::permission_denied ? Status::Forbidden
-                                            : Status::NotFound;
+  return ec == std::errc::permission_denied ? Status::Forbidden : Status::NotFound;
 }
 
 } // namespace
@@ -47,11 +46,9 @@ bool is_within(const fs::path &root, const fs::path &p) noexcept {
   return mismatch.first == root.end();
 }
 
-StaticHandler::StaticHandler(const fs::path &root)
-    : root_(fs::canonical(root)) {
+StaticHandler::StaticHandler(const fs::path &root) : root_(fs::canonical(root)) {
   if (!fs::is_directory(root_)) {
-    throw std::invalid_argument("document root is not a directory: " +
-                                root.string());
+    throw std::invalid_argument("document root is not a directory: " + root.string());
   }
 }
 
@@ -89,8 +86,7 @@ Response StaticHandler::serve(std::string_view path) const {
   if (!file) {
     return Response::error(Status::Forbidden);
   }
-  std::string body{std::istreambuf_iterator<char>(file),
-                   std::istreambuf_iterator<char>()};
+  std::string body{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
   if (file.bad()) {
     return Response::error(Status::InternalServerError);
   }

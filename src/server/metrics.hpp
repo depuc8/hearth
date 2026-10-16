@@ -31,12 +31,8 @@ public:
     active_connections_.fetch_add(1, std::memory_order_relaxed);
     total_connections_.fetch_add(1, std::memory_order_relaxed);
   }
-  void connection_closed() noexcept {
-    active_connections_.fetch_sub(1, std::memory_order_relaxed);
-  }
-  void request_received() noexcept {
-    total_requests_.fetch_add(1, std::memory_order_relaxed);
-  }
+  void connection_closed() noexcept { active_connections_.fetch_sub(1, std::memory_order_relaxed); }
+  void request_received() noexcept { total_requests_.fetch_add(1, std::memory_order_relaxed); }
 
   [[nodiscard]] MetricsSnapshot snapshot() const noexcept;
   /// The snapshot as a compact JSON object (served at GET /stats).

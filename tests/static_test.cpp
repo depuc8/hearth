@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <optional>
+#include <memory>
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -26,15 +26,14 @@ protected:
     tmp_.write("public/blob.bin", std::string("\0\1\2", 3));
     tmp_.write("secret.txt", "top secret");
     tmp_.write("public-evil/x.txt", "sibling dir");
-    handler_.emplace(tmp_.path() / "public");
+    handler_ = std::make_unique<StaticHandler>(tmp_.path() / "public");
   }
 
   /// Runs a raw request line through the real parser, then the handler,
   /// so percent-decoding is exercised exactly as in the server.
   hearth::http::Response get(const std::string &target) {
     hearth::http::RequestParser parser;
-    const auto result =
-        parser.feed("GET " + target + " HTTP/1.1\r\nHost: h\r\n\r\n");
+    const auto result = parser.feed("GET " + target + " HTTP/1.1\r\nHost: h\r\n\r\n");
     if (result.status != hearth::http::ParseStatus::Complete) {
       return hearth::http::Response::error(parser.error_status());
     }
@@ -42,7 +41,7 @@ protected:
   }
 
   hearth::test::TempDir tmp_;
-  std::optional<StaticHandler> handler_;
+  std::unique_ptr<StaticHandler> handler_;
 };
 
 } // namespace
@@ -124,16 +123,14 @@ TEST_F(StaticFiles, SymlinkEscapingRootIs403) {
 }
 
 TEST_F(StaticFiles, SymlinkInsideRootIsServed) {
-  fs::create_symlink(tmp_.path() / "public" / "style.css",
-                     tmp_.path() / "public" / "alias.css");
+  fs::create_symlink(tmp_.path() / "public" / "style.css", tmp_.path() / "public" / "alias.css");
   EXPECT_EQ(get("/alias.css").body, "body{}");
 }
 
 TEST_F(StaticFiles, SiblingDirectoryWithSharedPrefixIsNotInside) {
-  EXPECT_FALSE(hearth::files::is_within(tmp_.path() / "public",
-                                        tmp_.path() / "public-evil" / "x.txt"));
-  EXPECT_TRUE(hearth::files::is_within(tmp_.path() / "public",
-                                       tmp_.path() / "public" / "x.txt"));
+  EXPECT_FALSE(
+      hearth::files::is_within(tmp_.path() / "public", tmp_.path() / "public-evil" / "x.txt"));
+  EXPECT_TRUE(hearth::files::is_within(tmp_.path() / "public", tmp_.path() / "public" / "x.txt"));
 }
 
 TEST_F(StaticFiles, UnreadableFileIs403) {

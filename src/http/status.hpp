@@ -23,7 +23,9 @@ enum class Status : int {
   HttpVersionNotSupported = 505,
 };
 
-constexpr int code(Status status) noexcept { return static_cast<int>(status); }
+constexpr int code(Status status) noexcept {
+  return static_cast<int>(status);
+}
 
 /// The standard reason phrase, e.g. "Not Found". Unknown codes give "Unknown".
 std::string_view reason_phrase(Status status) noexcept;

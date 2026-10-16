@@ -11,9 +11,9 @@ namespace hearth::http {
 
 struct ParserLimits {
   /// Request line plus all header lines, including line terminators.
-  std::size_t max_header_bytes = 8 * 1024;
+  std::size_t max_header_bytes = std::size_t{8} * 1024;
   std::size_t max_header_count = 100;
-  std::size_t max_body_bytes = 1024 * 1024;
+  std::size_t max_body_bytes = std::size_t{1024} * 1024;
 };
 
 enum class ParseStatus { Incomplete, Complete, Error };
@@ -44,9 +44,7 @@ public:
 
   /// Valid when status() == Error: the status code to answer with.
   [[nodiscard]] Status error_status() const noexcept { return error_status_; }
-  [[nodiscard]] const std::string &error_reason() const noexcept {
-    return error_reason_;
-  }
+  [[nodiscard]] const std::string &error_reason() const noexcept { return error_reason_; }
 
   /// Prepares for the next request on the same connection.
   void reset();

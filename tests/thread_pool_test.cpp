@@ -32,7 +32,7 @@ TEST(ThreadPool, UsesMultipleThreads) {
   for (int i = 0; i < 4; ++i) {
     pool.submit([&] {
       {
-        const std::lock_guard<std::mutex> lock(mutex);
+        const std::scoped_lock lock(mutex);
         seen.insert(std::this_thread::get_id());
       }
       arrived.fetch_add(1);

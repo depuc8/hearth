@@ -7,9 +7,9 @@ MetricsSnapshot Metrics::snapshot() const noexcept {
   s.active_connections = active_connections_.load(std::memory_order_relaxed);
   s.total_connections = total_connections_.load(std::memory_order_relaxed);
   s.total_requests = total_requests_.load(std::memory_order_relaxed);
-  s.uptime_seconds = std::chrono::duration_cast<std::chrono::seconds>(
-                         std::chrono::steady_clock::now() - started_)
-                         .count();
+  s.uptime_seconds =
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - started_)
+          .count();
   return s;
 }
 

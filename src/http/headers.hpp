@@ -34,16 +34,11 @@ public:
   /// The first value for `name`, if any.
   [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const;
   [[nodiscard]] std::size_t count(std::string_view name) const;
-  [[nodiscard]] bool contains(std::string_view name) const {
-    return count(name) > 0;
-  }
+  [[nodiscard]] bool contains(std::string_view name) const { return get(name).has_value(); }
   /// True if any header named `name` lists `token`.
-  [[nodiscard]] bool has_token(std::string_view name,
-                               std::string_view token) const;
+  [[nodiscard]] bool has_token(std::string_view name, std::string_view token) const;
 
-  [[nodiscard]] const std::vector<Header> &all() const noexcept {
-    return items_;
-  }
+  [[nodiscard]] const std::vector<Header> &all() const noexcept { return items_; }
   [[nodiscard]] std::size_t size() const noexcept { return items_.size(); }
   [[nodiscard]] bool empty() const noexcept { return items_.empty(); }
   void clear() noexcept { items_.clear(); }

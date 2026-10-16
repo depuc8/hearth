@@ -19,7 +19,9 @@ bool is_field_value_char(char c) noexcept {
   return u == '\t' || (u >= 0x20 && u != 0x7f); // obs-text (>= 0x80) allowed
 }
 
-bool is_digit(char c) noexcept { return c >= '0' && c <= '9'; }
+bool is_digit(char c) noexcept {
+  return c >= '0' && c <= '9';
+}
 
 std::string_view trim_ows(std::string_view s) noexcept {
   const auto first = s.find_first_not_of(" \t");
@@ -52,11 +54,9 @@ bool parse_content_length(std::string_view s, std::size_t &out) noexcept {
 /// Strips "http://host[:port]" from an absolute-form target.
 std::string_view origin_form(std::string_view target) noexcept {
   for (const std::string_view scheme : {"http://", "https://"}) {
-    if (target.size() >= scheme.size() &&
-        iequals(target.substr(0, scheme.size()), scheme)) {
+    if (target.size() >= scheme.size() && iequals(target.substr(0, scheme.size()), scheme)) {
       const auto slash = target.find('/', scheme.size());
-      return slash == std::string_view::npos ? std::string_view("/")
-                                             : target.substr(slash);
+      return slash == std::string_view::npos ? std::string_view("/") : target.substr(slash);
     }
   }
   return target;
@@ -110,14 +110,12 @@ ParseResult RequestParser::feed(std::string_view data) {
     case State::RequestLine:
     case State::Headers: {
       const auto newline = data.find('\n', pos);
-      const std::size_t end =
-          newline == std::string_view::npos ? data.size() : newline + 1;
+      const std::size_t end = newline == std::string_view::npos ? data.size() : newline + 1;
       header_bytes_ += end - pos;
       if (header_bytes_ > limits_.max_header_bytes) {
         fail(state_ == State::RequestLine ? Status::UriTooLong
                                           : Status::RequestHeaderFieldsTooLarge,
-             state_ == State::RequestLine ? "request line too long"
-                                          : "header section too large");
+             state_ == State::RequestLine ? "request line too long" : "header section too large");
         return {ParseStatus::Error, end};
       }
       line_.append(data.substr(pos, end - pos));
@@ -192,8 +190,8 @@ bool RequestParser::parse_request_line(std::string_view line) {
   if (target.empty() || !std::all_of(target.begin(), target.end(), is_visible)) {
     return fail(Status::BadRequest, "invalid request target");
   }
-  if (version.size() != 8 || version.substr(0, 5) != "HTTP/" ||
-      !is_digit(version[5]) || version[6] != '.' || !is_digit(version[7])) {
+  if (version.size() != 8 || version.substr(0, 5) != "HTTP/" || !is_digit(version[5]) ||
+      version[6] != '.' || !is_digit(version[7])) {
     return fail(Status::BadRequest, "malformed HTTP version");
   }
   request_.version_major = version[5] - '0';
@@ -258,8 +256,7 @@ bool RequestParser::finish_headers() {
   const bool chunked = headers.contains("Transfer-Encoding");
   const bool has_length = headers.contains("Content-Length");
   if (chunked && has_length) {
-    return fail(Status::BadRequest,
-                "both Transfer-Encoding and Content-Length present");
+    return fail(Status::BadRequest, "both Transfer-Encoding and Content-Length present");
   }
   if (chunked) {
     return fail(Status::NotImplemented, "Transfer-Encoding is not supported");

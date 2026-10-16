@@ -16,8 +16,7 @@ using std::chrono::milliseconds;
 
 constexpr milliseconds kMaxPollWait{1000};
 
-net::ConnectionOptions make_connection_options(const ServerConfig &config,
-                                               Metrics &metrics) {
+net::ConnectionOptions make_connection_options(const ServerConfig &config, Metrics &metrics) {
   net::ConnectionOptions options;
   options.metrics = &metrics;
   options.limits.max_header_bytes = config.max_header_bytes;
@@ -37,10 +36,8 @@ std::size_t resolve_thread_count(std::size_t requested) noexcept {
 }
 
 Server::Server(ServerConfig config)
-    : config_(std::move(config)),
-      connection_options_(make_connection_options(config_, metrics_)),
-      listener_(config_.host, config_.port),
-      pool_(resolve_thread_count(config_.threads)) {}
+    : config_(std::move(config)), connection_options_(make_connection_options(config_, metrics_)),
+      listener_(config_.host, config_.port), pool_(resolve_thread_count(config_.threads)) {}
 
 Server::~Server() {
   stop();
@@ -69,8 +66,7 @@ void Server::run() {
         it = idle_.erase(it);
         continue;
       }
-      timeout = std::min(timeout,
-                         std::chrono::ceil<milliseconds>(deadline - now));
+      timeout = std::min(timeout, std::chrono::ceil<milliseconds>(deadline - now));
       ++it;
     }
 
@@ -83,8 +79,8 @@ void Server::run() {
       polled.push_back(connection);
     }
 
-    const int ready = ::poll(fds.data(), static_cast<nfds_t>(fds.size()),
-                             static_cast<int>(timeout.count()));
+    const int ready =
+        ::poll(fds.data(), static_cast<nfds_t>(fds.size()), static_cast<int>(timeout.count()));
     if (ready < 0) {
       if (errno == EINTR) {
         continue;
@@ -114,19 +110,15 @@ void Server::run() {
   listener_.close();
   idle_.clear();
   pool_.shutdown();
-  const std::lock_guard<std::mutex> lock(returned_mutex_);
+  const std::scoped_lock lock(returned_mutex_);
   returned_.clear();
 }
 
 void Server::accept_pending() {
   while (auto socket = listener_.accept()) {
-    try {
-      socket->set_nodelay(true);
-    } catch (const std::system_error &) {
-      // Not fatal: only affects latency.
-    }
-    auto connection = std::make_shared<net::Connection>(
-        std::move(*socket), router_, connection_options_);
+    socket->set_nodelay(true); // best effort: failure only affects latency
+    auto connection =
+        std::make_shared<net::Connection>(std::move(*socket), router_, connection_options_);
     const int fd = connection->fd();
     idle_.emplace(fd, std::move(connection));
   }
@@ -147,7 +139,7 @@ void Server::process(const ConnectionPtr &connection) {
 
 void Server::return_to_loop(ConnectionPtr connection) {
   {
-    const std::lock_guard<std::mutex> lock(returned_mutex_);
+    const std::scoped_lock lock(returned_mutex_);
     returned_.push_back(std::move(connection));
   }
   wake_.notify();
@@ -156,7 +148,7 @@ void Server::return_to_loop(ConnectionPtr connection) {
 void Server::adopt_returned() {
   std::vector<ConnectionPtr> batch;
   {
-    const std::lock_guard<std::mutex> lock(returned_mutex_);
+    const std::scoped_lock lock(returned_mutex_);
     batch.swap(returned_);
   }
   for (auto &connection : batch) {

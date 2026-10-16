@@ -1,0 +1,54 @@
+---
+# Families required by the project: bugprone, performance, modernize,
+# readability. Exclusions are listed with the reason.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -modernize-avoid-c-arrays,
+  -modernize-use-designated-initializers,
+  -modernize-use-ranges,
+  -modernize-use-std-print,
+  -modernize-use-integer-sign-comparison,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-math-missing-parentheses,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-redundant-access-specifiers,
+  -readability-use-concise-preprocessor-directives,
+  -performance-enum-size,
+  -readability-trailing-comma
+
+# Rationale for the exclusions above:
+#   easily-swappable-parameters  flags every (string, string) pair; too noisy
+#   use-trailing-return-type     a style choice the codebase doesn't follow
+#   use-nodiscard                applied by hand where it matters
+#   avoid-c-arrays               POSIX APIs (pipe(), recv buffers) want them
+#   designated-initializers,
+#   use-ranges, use-std-print,
+#   use-integer-sign-comparison  need C++20/23, and the project is C++17
+#   identifier-length            `fd`, `ec`, `it` are idiomatic
+#   magic-numbers                HTTP status codes and limits read better inline
+#   math-missing-parentheses     purely stylistic
+#   avoid-unconditional-pp-if,
+#   use-concise-pp-directives    platform #ifdefs are intentional
+#   redundant-access-specifiers  stylistic
+#   enum-size                    shrinking enums to uint8_t buys nothing here;
+#                                http::Status : int is deliberate
+#   trailing-comma               fights clang-format's packing of braced lists
+
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*/(src|tests)/.*'
+CheckOptions:
+  - key: readability-function-cognitive-complexity.Threshold
+    value: '40'
+  - key: readability-function-cognitive-complexity.IgnoreMacros
+    value: 'true'
+  - key: readability-implicit-bool-conversion.AllowPointerConditions
+    value: 'true'
+...

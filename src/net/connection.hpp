@@ -29,8 +29,7 @@ public:
 
   enum class Outcome { KeepOpen, Close };
 
-  Connection(Socket socket, const router::Router &router,
-             ConnectionOptions options);
+  Connection(Socket socket, const router::Router &router, ConnectionOptions options);
   ~Connection();
 
   Connection(const Connection &) = delete;
@@ -39,12 +38,8 @@ public:
   Connection &operator=(Connection &&) = delete;
 
   [[nodiscard]] int fd() const noexcept { return socket_.fd(); }
-  [[nodiscard]] Clock::time_point last_activity() const noexcept {
-    return last_activity_;
-  }
-  [[nodiscard]] std::size_t requests_served() const noexcept {
-    return requests_served_;
-  }
+  [[nodiscard]] Clock::time_point last_activity() const noexcept { return last_activity_; }
+  [[nodiscard]] std::size_t requests_served() const noexcept { return requests_served_; }
 
   /// Reads what is available without blocking, answers every complete
   /// request, and says whether the connection should stay open.

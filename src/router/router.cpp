@@ -17,8 +17,7 @@ void Router::add(std::string method, std::string path, Handler handler) {
   routes_.push_back({std::move(method), std::move(path), false, std::move(handler)});
 }
 
-void Router::add_prefix(std::string method, std::string prefix,
-                        Handler handler) {
+void Router::add_prefix(std::string method, std::string prefix, Handler handler) {
   routes_.push_back({std::move(method), std::move(prefix), true, std::move(handler)});
 }
 
@@ -35,13 +34,12 @@ http::Response Router::dispatch(const http::Request &request) const {
     return http::Response::error(http::Status::NotFound);
   }
 
-  std::stable_sort(candidates.begin(), candidates.end(),
-                   [](const Route *a, const Route *b) {
-                     if (a->is_prefix != b->is_prefix) {
-                       return !a->is_prefix;
-                     }
-                     return a->pattern.size() > b->pattern.size();
-                   });
+  std::stable_sort(candidates.begin(), candidates.end(), [](const Route *a, const Route *b) {
+    if (a->is_prefix != b->is_prefix) {
+      return !a->is_prefix;
+    }
+    return a->pattern.size() > b->pattern.size();
+  });
 
   const bool is_head = request.method == "HEAD";
   for (const Route *route : candidates) {

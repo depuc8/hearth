@@ -6,7 +6,7 @@
 - [x] 4. Router + static files + tests
 - [x] 5. Thread pool + keep-alive + timeouts + limits + integration tests
 - [x] 6. Atomic metrics + /stats + concurrency tests (TSan clean)
-- [ ] 7. clang-format, clang-tidy clean, all sanitizer presets green
+- [x] 7. clang-format, clang-tidy clean, all sanitizer presets green
 - [ ] 8. CI workflows, Docker, release workflow
 - [ ] 9. Logo, banner, README, docs, benchmark script + real run
 - [ ] 10. Fresh clone → build → test from README only

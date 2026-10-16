@@ -14,7 +14,7 @@ namespace hearth::net {
 
 namespace {
 
-constexpr std::size_t kReadChunk = 16 * 1024;
+constexpr std::size_t kReadChunk = std::size_t{16} * 1024;
 /// Upper bound on recv() calls per wakeup, so one busy client can't
 /// monopolize a worker. Level-triggered poll() brings us back.
 constexpr int kMaxReadsPerWake = 16;
@@ -26,10 +26,9 @@ const std::string &server_header() {
 
 } // namespace
 
-Connection::Connection(Socket socket, const router::Router &router,
-                       ConnectionOptions options)
-    : socket_(std::move(socket)), router_(router), options_(options),
-      parser_(options.limits), last_activity_(Clock::now()) {
+Connection::Connection(Socket socket, const router::Router &router, ConnectionOptions options)
+    : socket_(std::move(socket)), router_(router), options_(options), parser_(options.limits),
+      last_activity_(Clock::now()) {
   if (options_.metrics != nullptr) {
     options_.metrics->connection_opened();
   }
@@ -66,8 +65,8 @@ Connection::Outcome Connection::on_readable(bool draining) {
         return Outcome::Close;
       }
       ++requests_served_;
-      const bool keep_alive = parser_.request().keep_alive() && !draining &&
-                              requests_served_ < options_.max_requests;
+      const bool keep_alive =
+          parser_.request().keep_alive() && !draining && requests_served_ < options_.max_requests;
       if (!respond(parser_.request(), keep_alive) || !keep_alive) {
         return Outcome::Close;
       }
@@ -112,7 +111,7 @@ void Connection::reject(http::Status status) {
   std::array<char, 4096> sink{};
   const auto deadline = Clock::now() + std::chrono::milliseconds(200);
   std::size_t discarded = 0;
-  while (discarded < 256 * 1024 && Clock::now() < deadline &&
+  while (discarded < std::size_t{256} * 1024 && Clock::now() < deadline &&
          wait_readable(socket_.fd(), std::chrono::milliseconds(50))) {
     const auto r = recv_some(socket_.fd(), sink.data(), sink.size());
     if (r.status != IoStatus::Ok) {
@@ -125,8 +124,7 @@ void Connection::reject(http::Status status) {
 bool Connection::write(http::Response &response, bool include_body) {
   response.headers.set("Server", server_header());
   response.headers.set("Date", http::http_date(std::time(nullptr)));
-  return send_all(socket_.fd(), response.serialize(include_body),
-                  options_.write_timeout);
+  return send_all(socket_.fd(), response.serialize(include_body), options_.write_timeout);
 }
 
 } // namespace hearth::net

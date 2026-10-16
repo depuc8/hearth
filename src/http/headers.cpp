@@ -24,22 +24,19 @@ std::string_view trim_ows(std::string_view s) noexcept {
 } // namespace
 
 bool iequals(std::string_view a, std::string_view b) noexcept {
-  return a.size() == b.size() &&
-         std::equal(a.begin(), a.end(), b.begin(), [](char x, char y) {
+  return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [](char x, char y) {
            return ascii_lower(x) == ascii_lower(y);
          });
 }
 
 bool is_tchar(char c) noexcept {
-  if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-      (c >= '0' && c <= '9')) {
+  if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
     return true;
   }
   return c != '\0' && std::strchr("!#$%&'*+-.^_`|~", c) != nullptr;
 }
 
-bool list_contains_token(std::string_view value,
-                         std::string_view token) noexcept {
+bool list_contains_token(std::string_view value, std::string_view token) noexcept {
   while (!value.empty()) {
     const auto comma = value.find(',');
     if (iequals(trim_ows(value.substr(0, comma)), token)) {
@@ -64,9 +61,7 @@ void Headers::set(std::string_view name, std::string value) {
 
 void Headers::remove(std::string_view name) {
   items_.erase(std::remove_if(items_.begin(), items_.end(),
-                              [&](const Header &h) {
-                                return iequals(h.name, name);
-                              }),
+                              [&](const Header &h) { return iequals(h.name, name); }),
                items_.end());
 }
 
@@ -80,9 +75,8 @@ std::optional<std::string_view> Headers::get(std::string_view name) const {
 }
 
 std::size_t Headers::count(std::string_view name) const {
-  return static_cast<std::size_t>(
-      std::count_if(items_.begin(), items_.end(),
-                    [&](const Header &h) { return iequals(h.name, name); }));
+  return static_cast<std::size_t>(std::count_if(
+      items_.begin(), items_.end(), [&](const Header &h) { return iequals(h.name, name); }));
 }
 
 bool Headers::has_token(std::string_view name, std::string_view token) const {

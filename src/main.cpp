@@ -11,7 +11,6 @@
 #include <vector>
 
 #include <pthread.h>
-#include <signal.h>
 #include <unistd.h>
 
 namespace {
@@ -32,8 +31,7 @@ sigset_t block_shutdown_signals() {
 } // namespace
 
 int main(int argc, char **argv) {
-  const auto cli =
-      hearth::server::parse_cli(std::vector<std::string>(argv + 1, argv + argc));
+  const auto cli = hearth::server::parse_cli(std::vector<std::string>(argv + 1, argv + argc));
   switch (cli.action) {
   case CliOutcome::Action::Help:
     std::cout << hearth::server::usage();
@@ -61,10 +59,10 @@ int main(int argc, char **argv) {
       server.stop();
     });
 
-    std::cout << "hearth " << hearth::version() << " listening on http://"
-              << cli.config.host << ':' << server.port() << " ("
-              << hearth::server::resolve_thread_count(cli.config.threads)
-              << " threads, root " << cli.config.doc_root << ")" << std::endl;
+    std::cout << "hearth " << hearth::version() << " listening on http://" << cli.config.host << ':'
+              << server.port() << " (" << hearth::server::resolve_thread_count(cli.config.threads)
+              << " threads, root " << cli.config.doc_root << ")\n"
+              << std::flush;
     try {
       server.run();
     } catch (...) {
@@ -74,7 +72,7 @@ int main(int argc, char **argv) {
     }
     // run() only returns after stop(), i.e. after the waiter has fired.
     signal_waiter.join();
-    std::cout << "hearth: shut down cleanly" << std::endl;
+    std::cout << "hearth: shut down cleanly\n" << std::flush;
   } catch (const std::exception &e) {
     std::cerr << "hearth: " << e.what() << '\n';
     return 1;

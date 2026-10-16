@@ -14,11 +14,13 @@ ThreadPool::ThreadPool(std::size_t threads) {
   }
 }
 
-ThreadPool::~ThreadPool() { shutdown(); }
+ThreadPool::~ThreadPool() {
+  shutdown();
+}
 
 bool ThreadPool::submit(Task task) {
   {
-    const std::lock_guard<std::mutex> lock(mutex_);
+    const std::scoped_lock lock(mutex_);
     if (stopping_) {
       return false;
     }
@@ -30,7 +32,7 @@ bool ThreadPool::submit(Task task) {
 
 void ThreadPool::shutdown() {
   {
-    const std::lock_guard<std::mutex> lock(mutex_);
+    const std::scoped_lock lock(mutex_);
     stopping_ = true;
   }
   ready_.notify_all();
@@ -42,7 +44,7 @@ void ThreadPool::shutdown() {
 }
 
 std::size_t ThreadPool::pending() const {
-  const std::lock_guard<std::mutex> lock(mutex_);
+  const std::scoped_lock lock(mutex_);
   return queue_.size();
 }
 

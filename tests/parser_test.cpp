@@ -79,8 +79,7 @@ TEST(Parser, AbsoluteFormTargetIsReducedToPath) {
 
 TEST(Parser, AsteriskFormForOptions) {
   RequestParser parser;
-  ASSERT_EQ(parse_all(parser, "OPTIONS * HTTP/1.1\r\nHost: h\r\n\r\n"),
-            ParseStatus::Complete);
+  ASSERT_EQ(parse_all(parser, "OPTIONS * HTTP/1.1\r\nHost: h\r\n\r\n"), ParseStatus::Complete);
   EXPECT_EQ(parser.request().path, "*");
 }
 
@@ -144,8 +143,7 @@ TEST(Parser, ByteByByteWithBody) {
 }
 
 TEST(Parser, ArbitraryChunkBoundaries) {
-  const std::string input =
-      "PUT /x HTTP/1.1\r\nHost: h\r\nContent-Length: 5\r\n\r\nabcde";
+  const std::string input = "PUT /x HTTP/1.1\r\nHost: h\r\nContent-Length: 5\r\n\r\nabcde";
   for (std::size_t split = 1; split < input.size(); ++split) {
     RequestParser parser;
     const auto first = parser.feed(std::string_view(input).substr(0, split));
@@ -228,8 +226,7 @@ TEST(Parser, BareLfLineEndingsAreAccepted) {
 
 TEST(Parser, LeadingEmptyLinesAreIgnored) {
   RequestParser parser;
-  ASSERT_EQ(parse_all(parser, "\r\n\r\nGET / HTTP/1.1\r\nHost: h\r\n\r\n"),
-            ParseStatus::Complete);
+  ASSERT_EQ(parse_all(parser, "\r\n\r\nGET / HTTP/1.1\r\nHost: h\r\n\r\n"), ParseStatus::Complete);
   EXPECT_EQ(parser.request().method, "GET");
 }
 
@@ -284,8 +281,8 @@ TEST(Parser, RejectsBadPercentEncoding) {
 // --- Versions ---------------------------------------------------------------------
 
 TEST(Parser, RejectsMalformedVersions) {
-  for (const char *version : {"HTTP/1", "HTTP/1.1.1", "http/1.1", "HTTP/x.1", "HTTP1.1",
-                              "HTTP/11", "HTTPS/1.1"}) {
+  for (const char *version :
+       {"HTTP/1", "HTTP/1.1.1", "http/1.1", "HTTP/x.1", "HTTP1.1", "HTTP/11", "HTTPS/1.1"}) {
     EXPECT_EQ(error_for(std::string("GET / ") + version + "\r\nHost: h\r\n\r\n"),
               Status::BadRequest)
         << version;
@@ -313,8 +310,7 @@ TEST(Parser, RejectsEmptyHeaderName) {
 }
 
 TEST(Parser, RejectsObsoleteLineFolding) {
-  EXPECT_EQ(error_for("GET / HTTP/1.1\r\nHost: h\r\nX-A: one\r\n two\r\n\r\n"),
-            Status::BadRequest);
+  EXPECT_EQ(error_for("GET / HTTP/1.1\r\nHost: h\r\nX-A: one\r\n two\r\n\r\n"), Status::BadRequest);
 }
 
 TEST(Parser, RejectsControlCharactersInValue) {
@@ -380,10 +376,10 @@ TEST(Parser, BinaryBodyIsPreserved) {
 }
 
 TEST(Parser, InvalidContentLengthIs400) {
-  for (const char *value : {"abc", "-1", "1.5", "", "0x10", "+5", "5 5",
-                            "99999999999999999999999999"}) {
-    EXPECT_EQ(error_for(std::string("POST / HTTP/1.1\r\nHost: h\r\nContent-Length: ") +
-                        value + "\r\n\r\n"),
+  for (const char *value :
+       {"abc", "-1", "1.5", "", "0x10", "+5", "5 5", "99999999999999999999999999"}) {
+    EXPECT_EQ(error_for(std::string("POST / HTTP/1.1\r\nHost: h\r\nContent-Length: ") + value +
+                        "\r\n\r\n"),
               Status::BadRequest)
         << "'" << value << "'";
   }

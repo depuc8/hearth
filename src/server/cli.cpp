@@ -10,12 +10,13 @@ namespace hearth::server {
 
 namespace {
 
-std::optional<std::uint64_t> parse_number(std::string_view text,
-                                          std::uint64_t min, std::uint64_t max) {
+std::optional<std::uint64_t> parse_number(std::string_view text, std::uint64_t min,
+                                          std::uint64_t max) {
   std::uint64_t value = 0;
-  const auto *end = text.data() + text.size();
-  const auto [ptr, ec] = std::from_chars(text.data(), end, value);
-  if (ec != std::errc{} || ptr != end || value < min || value > max) {
+  const char *first = text.data();
+  const char *last = first + text.size();
+  const auto [ptr, ec] = std::from_chars(first, last, value);
+  if (ec != std::errc{} || ptr != last || value < min || value > max) {
     return std::nullopt;
   }
   return value;
@@ -28,9 +29,54 @@ CliOutcome error(std::string message) {
   return outcome;
 }
 
+/// Applies one "--name value" pair. Returns false if the name is unknown or
+/// the value is invalid; `known` tells the two apart.
+bool apply_option(std::string_view name, std::string_view value, ServerConfig &config,
+                  bool &known) {
+  known = true;
+  const auto number = [&](std::uint64_t min, std::uint64_t max) {
+    return parse_number(value, min, max);
+  };
+  if (name == "--port") {
+    const auto port = number(0, 65535);
+    config.port = static_cast<std::uint16_t>(port.value_or(0));
+    return port.has_value();
+  }
+  if (name == "--threads") {
+    const auto threads = number(0, 1024);
+    config.threads = threads.value_or(0);
+    return threads.has_value();
+  }
+  if (name == "--idle-timeout-ms") {
+    const auto ms = number(1, 3'600'000);
+    config.idle_timeout = std::chrono::milliseconds(static_cast<std::int64_t>(ms.value_or(1)));
+    return ms.has_value();
+  }
+  if (name == "--max-requests") {
+    const auto n = number(1, std::numeric_limits<std::size_t>::max());
+    config.max_requests_per_connection = n.value_or(1);
+    return n.has_value();
+  }
+  if (name == "--max-body") {
+    const auto n = number(0, std::uint64_t{1} << 32U);
+    config.max_body_bytes = n.value_or(0);
+    return n.has_value();
+  }
+  if (name == "--host") {
+    config.host = std::string(value);
+    return !value.empty();
+  }
+  if (name == "--root") {
+    config.doc_root = std::string(value);
+    return !value.empty();
+  }
+  known = false;
+  return false;
+}
+
 } // namespace
 
-std::string usage() {
+std::string_view usage() {
   return "Usage: hearth [options]\n"
          "\n"
          "Options:\n"
@@ -47,10 +93,8 @@ std::string usage() {
 
 CliOutcome parse_cli(const std::vector<std::string> &args) {
   CliOutcome outcome;
-  auto &config = outcome.config;
-
   for (std::size_t i = 0; i < args.size(); ++i) {
-    std::string_view arg = args[i];
+    const std::string_view arg = args[i];
     if (arg == "-h" || arg == "--help") {
       outcome.action = CliOutcome::Action::Help;
       return outcome;
@@ -74,55 +118,11 @@ CliOutcome parse_cli(const std::vector<std::string> &args) {
     if (!value) {
       return error("option '" + std::string(name) + "' needs a value");
     }
-    const auto bad_value = [&] {
-      return error("invalid value '" + std::string(*value) + "' for " +
-                   std::string(name));
-    };
 
-    if (name == "--port") {
-      const auto port = parse_number(*value, 0, 65535);
-      if (!port) {
-        return bad_value();
-      }
-      config.port = static_cast<std::uint16_t>(*port);
-    } else if (name == "--host") {
-      if (value->empty()) {
-        return bad_value();
-      }
-      config.host = std::string(*value);
-    } else if (name == "--threads") {
-      const auto threads = parse_number(*value, 0, 1024);
-      if (!threads) {
-        return bad_value();
-      }
-      config.threads = *threads;
-    } else if (name == "--root") {
-      if (value->empty()) {
-        return bad_value();
-      }
-      config.doc_root = std::string(*value);
-    } else if (name == "--idle-timeout-ms") {
-      const auto ms = parse_number(*value, 1, 3'600'000);
-      if (!ms) {
-        return bad_value();
-      }
-      config.idle_timeout =
-          std::chrono::milliseconds(static_cast<std::int64_t>(*ms));
-    } else if (name == "--max-requests") {
-      const auto n =
-          parse_number(*value, 1, std::numeric_limits<std::size_t>::max());
-      if (!n) {
-        return bad_value();
-      }
-      config.max_requests_per_connection = *n;
-    } else if (name == "--max-body") {
-      const auto n = parse_number(*value, 0, std::uint64_t{1} << 32U);
-      if (!n) {
-        return bad_value();
-      }
-      config.max_body_bytes = *n;
-    } else {
-      return error("unknown option '" + std::string(name) + "'");
+    bool known = true;
+    if (!apply_option(name, *value, outcome.config, known)) {
+      return error(known ? "invalid value '" + std::string(*value) + "' for " + std::string(name)
+                         : "unknown option '" + std::string(name) + "'");
     }
   }
   return outcome;

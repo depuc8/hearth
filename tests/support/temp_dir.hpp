@@ -15,8 +15,7 @@ namespace hearth::test {
 class TempDir {
 public:
   TempDir() {
-    std::string pattern =
-        (std::filesystem::temp_directory_path() / "hearth-test-XXXXXX").string();
+    std::string pattern = (std::filesystem::temp_directory_path() / "hearth-test-XXXXXX").string();
     if (::mkdtemp(pattern.data()) == nullptr) {
       throw std::system_error(errno, std::generic_category(), "mkdtemp");
     }

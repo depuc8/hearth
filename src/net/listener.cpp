@@ -37,14 +37,12 @@ Listener::Listener(const std::string &host, std::uint16_t port) {
 
   addrinfo *raw = nullptr;
   const std::string service = std::to_string(port);
-  const int rc = ::getaddrinfo(host.empty() ? nullptr : host.c_str(),
-                               service.c_str(), &hints, &raw);
+  const int rc =
+      ::getaddrinfo(host.empty() ? nullptr : host.c_str(), service.c_str(), &hints, &raw);
   if (rc != 0) {
-    throw std::runtime_error("cannot resolve '" + host +
-                             "': " + ::gai_strerror(rc));
+    throw std::runtime_error("cannot resolve '" + host + "': " + ::gai_strerror(rc));
   }
-  const std::unique_ptr<addrinfo, decltype(&::freeaddrinfo)> results(
-      raw, &::freeaddrinfo);
+  const std::unique_ptr<addrinfo, decltype(&::freeaddrinfo)> results(raw, &::freeaddrinfo);
 
   int last_errno = 0;
   for (const addrinfo *ai = results.get(); ai != nullptr; ai = ai->ai_next) {

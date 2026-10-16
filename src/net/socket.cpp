@@ -16,7 +16,9 @@ std::system_error errno_error(std::string_view what) {
   return {errno, std::generic_category(), std::string(what)};
 }
 
-Socket::~Socket() { reset(); }
+Socket::~Socket() {
+  reset();
+}
 
 Socket::Socket(Socket &&other) noexcept : fd_(other.release()) {}
 
@@ -27,7 +29,9 @@ Socket &Socket::operator=(Socket &&other) noexcept {
   return *this;
 }
 
-int Socket::release() noexcept { return std::exchange(fd_, -1); }
+int Socket::release() noexcept {
+  return std::exchange(fd_, -1);
+}
 
 void Socket::reset(int fd) noexcept {
   if (fd_ >= 0) {
@@ -41,7 +45,9 @@ void Socket::set_nonblocking(bool enabled) const {
   if (flags < 0) {
     throw errno_error("fcntl(F_GETFL)");
   }
-  const int updated = enabled ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
+  // fcntl's flag word is an int by POSIX definition.
+  const int updated = enabled ? (flags | O_NONBLOCK)   // NOLINT(bugprone-signed-bitwise)
+                              : (flags & ~O_NONBLOCK); // NOLINT(bugprone-signed-bitwise)
   if (::fcntl(fd_, F_SETFL, updated) < 0) {
     throw errno_error("fcntl(F_SETFL)");
   }
@@ -53,11 +59,9 @@ void Socket::set_cloexec() const {
   }
 }
 
-void Socket::set_nodelay(bool enabled) const {
+bool Socket::set_nodelay(bool enabled) const noexcept {
   const int value = enabled ? 1 : 0;
-  if (::setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) < 0) {
-    throw errno_error("setsockopt(TCP_NODELAY)");
-  }
+  return ::setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) == 0;
 }
 
 void Socket::set_nosigpipe() const {

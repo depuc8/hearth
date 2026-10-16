@@ -142,3 +142,18 @@ question, the choice, and why.
 - **The race demo is opt-in** (`HEARTH_BUILD_RACE_DEMO`), so the default TSan
   run has zero reports. In a TSan build it adds two CTest cases that *expect*
   a TSan report for the plain int and none for the atomic.
+
+## Code quality
+
+- **clang-format: LLVM base with a 100-column limit.** 80 columns made
+  `EXPECT_EQ(...)` lines in tests wrap awkwardly.
+- **clang-tidy runs the four required families with documented exclusions**
+  (see the comments in `.clang-tidy`), `WarningsAsErrors: '*'`, and covers
+  tests as well as sources. Findings were fixed rather than suppressed except
+  for one `NOLINT` on POSIX `fcntl` flag arithmetic, which is `int` by
+  definition.
+- **`-fprofile-update=atomic` for coverage builds.** The tests are
+  multithreaded and gcov's own counters otherwise race, which gcovr reports
+  as "negative hits". It's the same bug as in `docs/atomic-counter-race.md`.
+- **`Socket::set_nodelay` returns bool instead of throwing.** Its only caller
+  treats failure as harmless, and an empty catch block was hiding that.

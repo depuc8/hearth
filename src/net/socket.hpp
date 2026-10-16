@@ -31,7 +31,8 @@ public:
 
   void set_nonblocking(bool enabled) const;
   void set_cloexec() const;
-  void set_nodelay(bool enabled) const;
+  /// Best effort: returns false if the option could not be set.
+  bool set_nodelay(bool enabled) const noexcept;
   /// Prevents SIGPIPE on writes to a closed peer where the platform supports
   /// a per-socket option (macOS). Linux uses MSG_NOSIGNAL instead.
   void set_nosigpipe() const;

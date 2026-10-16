@@ -4,8 +4,7 @@
 
 namespace hearth::http {
 
-Response Response::text(Status status, std::string body,
-                        std::string_view content_type) {
+Response Response::text(Status status, std::string body, std::string_view content_type) {
   Response response;
   response.status = status;
   response.headers.set("Content-Type", std::string(content_type));
@@ -55,8 +54,7 @@ std::string http_date(std::time_t when) {
   std::tm tm{};
   gmtime_r(&when, &tm);
   std::array<char, 64> buffer{};
-  const auto n =
-      std::strftime(buffer.data(), buffer.size(), "%a, %d %b %Y %H:%M:%S GMT", &tm);
+  const auto n = std::strftime(buffer.data(), buffer.size(), "%a, %d %b %Y %H:%M:%S GMT", &tm);
   return {buffer.data(), n};
 }
 

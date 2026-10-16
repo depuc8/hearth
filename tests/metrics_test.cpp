@@ -100,8 +100,7 @@ TEST(MetricsConcurrency, RequestCounterIsExactUnderContention) {
       m.request_received();
     }
   });
-  EXPECT_EQ(m.snapshot().total_requests,
-            static_cast<std::uint64_t>(kThreads) * kPerThread);
+  EXPECT_EQ(m.snapshot().total_requests, static_cast<std::uint64_t>(kThreads) * kPerThread);
 }
 
 TEST(MetricsConcurrency, OpenCloseBalanceUnderContention) {
@@ -231,8 +230,7 @@ TEST(StatsEndpoint, ExactTotalsUnderConcurrentLoad) {
   const auto json = fetch_stats(server.port());
   EXPECT_EQ(json_field(json, "total_requests"),
             static_cast<std::uint64_t>(kClients * kRequestsEach + 1));
-  EXPECT_EQ(json_field(json, "total_connections"),
-            static_cast<std::uint64_t>(kClients + 1));
+  EXPECT_EQ(json_field(json, "total_connections"), static_cast<std::uint64_t>(kClients + 1));
 }
 
 TEST(StatsEndpoint, AllConnectionsReleasedAfterStop) {

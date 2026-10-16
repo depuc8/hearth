@@ -19,6 +19,8 @@ endif()
 
 if(HEARTH_COVERAGE)
   message(STATUS "hearth: coverage instrumentation enabled")
-  target_compile_options(hearth_options INTERFACE --coverage -O0 -g)
+  # Atomic counter updates: the tests are multithreaded, and plain gcov
+  # counters race (gcovr then sees "negative hits").
+  target_compile_options(hearth_options INTERFACE --coverage -fprofile-update=atomic -O0 -g)
   target_link_options(hearth_options INTERFACE --coverage)
 endif()

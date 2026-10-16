@@ -19,9 +19,7 @@ Request make(std::string method, std::string path) {
 
 /// Handler that answers with its own name so tests can see who ran.
 hearth::router::Handler named(std::string name) {
-  return [name = std::move(name)](const Request &) {
-    return Response::text(Status::Ok, name);
-  };
+  return [name = std::move(name)](const Request &) { return Response::text(Status::Ok, name); };
 }
 
 } // namespace

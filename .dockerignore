@@ -1,0 +1,11 @@
+.git
+.github
+.cache
+.vscode
+.idea
+build
+out
+cmake-build-*
+bench
+assets
+*.md

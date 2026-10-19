@@ -35,6 +35,7 @@ public:
     if (::connect(socket_.fd(), reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) != 0) {
       throw net::errno_error("connect");
     }
+    socket_.set_nosigpipe(); // macOS has no MSG_NOSIGNAL
   }
 
   void send(std::string_view data) {

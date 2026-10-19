@@ -1,0 +1,127 @@
+:root {
+  --bg: #fbf7f2;
+  --fg: #1f1a17;
+  --muted: #6b625c;
+  --card: #ffffff;
+  --border: #eadfd4;
+  --ember: #e8590c;
+  --flame: #f59f00;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171311;
+    --fg: #f3ece6;
+    --muted: #a89d95;
+    --card: #221c19;
+    --border: #3a302b;
+    --ember: #ff7a2f;
+    --flame: #ffc247;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 64px 16px 32px;
+  text-align: center;
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  max-width: 560px;
+  margin: 0 auto 40px;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  text-align: left;
+}
+
+.cards article,
+.stats {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.cards h2,
+.stats h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.cards p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.stats {
+  margin-top: 24px;
+}
+
+.stats dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+}
+
+.stats dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stats dd {
+  margin: 0;
+  font: 600 1.75rem/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color: var(--ember);
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: var(--ember);
+}
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+footer {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

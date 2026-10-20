@@ -19,11 +19,11 @@ TEST(Integration, GetIndexOverRealSocket) {
   TestClient client(server.port());
   client.get("/");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 200);
-  EXPECT_EQ(r->body, "<h1>hearth</h1>");
-  EXPECT_EQ(r->headers.get("Content-Type"), "text/html; charset=utf-8");
-  EXPECT_EQ(r->headers.get("Content-Length"), "15");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 200);
+  EXPECT_EQ(r.body, "<h1>hearth</h1>");
+  EXPECT_EQ(r.headers.get("Content-Type"), "text/html; charset=utf-8");
+  EXPECT_EQ(r.headers.get("Content-Length"), "15");
 }
 
 TEST(Integration, ServerAndDateHeadersArePresent) {
@@ -31,9 +31,9 @@ TEST(Integration, ServerAndDateHeadersArePresent) {
   TestClient client(server.port());
   client.get("/style.css");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->headers.get("Server"), "hearth/0.1.0");
-  const auto date = r->headers.get("Date").value_or("");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.headers.get("Server"), "hearth/0.1.0");
+  const auto date = r.headers.get("Date").value_or("");
   EXPECT_NE(date.find(" GMT"), std::string_view::npos) << date;
 }
 
@@ -42,14 +42,14 @@ TEST(Integration, HeadHasLengthButNoBody) {
   TestClient client(server.port());
   client.send("HEAD /style.css HTTP/1.1\r\nHost: h\r\n\r\n");
   const auto r = client.read_response(/*head=*/true);
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 200);
-  EXPECT_EQ(r->headers.get("Content-Length"), "20");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 200);
+  EXPECT_EQ(r.headers.get("Content-Length"), "20");
   // The next response must start right away: no stray body bytes.
   client.get("/docs/readme.txt");
   const auto next = client.read_response();
-  ASSERT_TRUE(next.has_value());
-  EXPECT_EQ(next->body, "read me");
+  ASSERT_TRUE(next.received());
+  EXPECT_EQ(next.body, "read me");
 }
 
 TEST(Integration, MissingFileIs404) {
@@ -57,9 +57,9 @@ TEST(Integration, MissingFileIs404) {
   TestClient client(server.port());
   client.get("/missing.html");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 404);
-  EXPECT_EQ(r->body, "404 Not Found\n");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 404);
+  EXPECT_EQ(r.body, "404 Not Found\n");
 }
 
 TEST(Integration, WrongMethodIs405WithAllow) {
@@ -67,9 +67,9 @@ TEST(Integration, WrongMethodIs405WithAllow) {
   TestClient client(server.port());
   client.send("DELETE /index.html HTTP/1.1\r\nHost: h\r\n\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 405);
-  EXPECT_EQ(r->headers.get("Allow"), "GET, HEAD");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 405);
+  EXPECT_EQ(r.headers.get("Allow"), "GET, HEAD");
 }
 
 TEST(Integration, TraversalOverTheWireIs403) {
@@ -79,8 +79,8 @@ TEST(Integration, TraversalOverTheWireIs403) {
     TestClient client(server.port());
     client.get(path);
     const auto r = client.read_response();
-    ASSERT_TRUE(r.has_value()) << path;
-    EXPECT_EQ(r->status, 403) << path;
+    ASSERT_TRUE(r.received()) << path;
+    EXPECT_EQ(r.status, 403) << path;
   }
 }
 
@@ -90,9 +90,9 @@ TEST(Integration, KeepAliveReusesOneConnection) {
   for (int i = 0; i < 5; ++i) {
     client.get(i % 2 == 0 ? "/" : "/style.css");
     const auto r = client.read_response();
-    ASSERT_TRUE(r.has_value()) << "request " << i;
-    EXPECT_EQ(r->status, 200);
-    EXPECT_FALSE(r->headers.get("Connection").has_value());
+    ASSERT_TRUE(r.received()) << "request " << i;
+    EXPECT_EQ(r.status, 200);
+    EXPECT_FALSE(r.headers.get("Connection").has_value());
   }
 }
 
@@ -101,9 +101,9 @@ TEST(Integration, ConnectionCloseIsHonored) {
   TestClient client(server.port());
   client.get("/", "Connection: close\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 200);
-  EXPECT_EQ(r->headers.get("Connection"), "close");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 200);
+  EXPECT_EQ(r.headers.get("Connection"), "close");
   EXPECT_TRUE(client.closed_by_peer(2s));
 }
 
@@ -112,8 +112,8 @@ TEST(Integration, Http10ClosesByDefault) {
   TestClient client(server.port());
   client.send("GET / HTTP/1.0\r\n\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->headers.get("Connection"), "close");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.headers.get("Connection"), "close");
   EXPECT_TRUE(client.closed_by_peer(2s));
 }
 
@@ -123,8 +123,8 @@ TEST(Integration, Http10KeepAliveIsHonored) {
   for (int i = 0; i < 2; ++i) {
     client.send("GET / HTTP/1.0\r\nConnection: keep-alive\r\n\r\n");
     const auto r = client.read_response();
-    ASSERT_TRUE(r.has_value());
-    EXPECT_EQ(r->headers.get("Connection"), "keep-alive");
+    ASSERT_TRUE(r.received());
+    EXPECT_EQ(r.headers.get("Connection"), "keep-alive");
   }
 }
 
@@ -134,7 +134,7 @@ TEST(Integration, IdleConnectionIsClosedAfterTimeout) {
   RunningServer server(config);
   TestClient client(server.port());
   client.get("/");
-  ASSERT_TRUE(client.read_response().has_value());
+  ASSERT_TRUE(client.read_response().received());
   const auto start = std::chrono::steady_clock::now();
   EXPECT_TRUE(client.closed_by_peer(3s));
   EXPECT_GE(std::chrono::steady_clock::now() - start, 150ms);
@@ -156,11 +156,11 @@ TEST(Integration, RequestCapClosesConnection) {
   for (int i = 1; i <= 3; ++i) {
     client.get("/");
     const auto r = client.read_response();
-    ASSERT_TRUE(r.has_value());
+    ASSERT_TRUE(r.received());
     if (i < 3) {
-      EXPECT_FALSE(r->headers.get("Connection").has_value());
+      EXPECT_FALSE(r.headers.get("Connection").has_value());
     } else {
-      EXPECT_EQ(r->headers.get("Connection"), "close");
+      EXPECT_EQ(r.headers.get("Connection"), "close");
     }
   }
   EXPECT_TRUE(client.closed_by_peer(2s));
@@ -174,8 +174,8 @@ TEST(Integration, PipelinedRequestsAreAnsweredInOrder) {
               "GET /docs/readme.txt HTTP/1.1\r\nHost: h\r\n\r\n");
   for (const char *expected : {"<h1>hearth</h1>", "body { color: red; }", "read me"}) {
     const auto r = client.read_response();
-    ASSERT_TRUE(r.has_value());
-    EXPECT_EQ(r->body, expected);
+    ASSERT_TRUE(r.received());
+    EXPECT_EQ(r.body, expected);
   }
 }
 
@@ -188,8 +188,8 @@ TEST(Integration, SlowClientByteByByte) {
     std::this_thread::sleep_for(1ms);
   }
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->body, "body { color: red; }");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.body, "body { color: red; }");
 }
 
 TEST(Integration, MalformedRequestIs400AndCloses) {
@@ -197,9 +197,9 @@ TEST(Integration, MalformedRequestIs400AndCloses) {
   TestClient client(server.port());
   client.send("THIS IS NOT HTTP\r\n\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 400);
-  EXPECT_EQ(r->headers.get("Connection"), "close");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 400);
+  EXPECT_EQ(r.headers.get("Connection"), "close");
   EXPECT_TRUE(client.closed_by_peer(2s));
 }
 
@@ -208,8 +208,8 @@ TEST(Integration, UnsupportedVersionIs505) {
   TestClient client(server.port());
   client.send("GET / HTTP/2.0\r\nHost: h\r\n\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 505);
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 505);
 }
 
 TEST(Integration, OversizedHeadersAre431) {
@@ -217,8 +217,8 @@ TEST(Integration, OversizedHeadersAre431) {
   TestClient client(server.port());
   client.get("/", "X-Big: " + std::string(10000, 'x') + "\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 431);
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 431);
 }
 
 TEST(Integration, OversizedBodyIs413) {
@@ -229,8 +229,8 @@ TEST(Integration, OversizedBodyIs413) {
   client.send("POST / HTTP/1.1\r\nHost: h\r\nContent-Length: 4096\r\n\r\n" +
               std::string(4096, 'b'));
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 413);
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 413);
 }
 
 TEST(Integration, ConcurrentClients) {
@@ -246,7 +246,7 @@ TEST(Integration, ConcurrentClients) {
       for (int i = 0; i < kRequestsEach; ++i) {
         client.get("/style.css");
         const auto r = client.read_response();
-        if (r && r->status == 200 && r->body == "body { color: red; }") {
+        if (r && r.status == 200 && r.body == "body { color: red; }") {
           ok.fetch_add(1);
         }
       }
@@ -273,8 +273,8 @@ TEST(Integration, MoreIdleConnectionsThanWorkers) {
     for (auto &client : clients) {
       client->get("/");
       const auto r = client->read_response(false, 2s);
-      ASSERT_TRUE(r.has_value());
-      EXPECT_EQ(r->status, 200);
+      ASSERT_TRUE(r.received());
+      EXPECT_EQ(r.status, 200);
     }
   }
 }
@@ -283,7 +283,7 @@ TEST(Integration, StopClosesIdleConnectionsPromptly) {
   RunningServer server;
   TestClient client(server.port());
   client.get("/");
-  ASSERT_TRUE(client.read_response().has_value());
+  ASSERT_TRUE(client.read_response().received());
   const auto start = std::chrono::steady_clock::now();
   server.stop();
   EXPECT_LT(std::chrono::steady_clock::now() - start, 2s);

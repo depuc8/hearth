@@ -52,7 +52,7 @@ std::string fetch_stats(std::uint16_t port) {
   TestClient client(port);
   client.get("/stats", "Connection: close\r\n");
   const auto r = client.read_response();
-  return r ? r->body : std::string();
+  return r.body;
 }
 
 } // namespace
@@ -150,12 +150,12 @@ TEST(StatsEndpoint, ServesJson) {
   TestClient client(server.port());
   client.get("/stats");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 200);
-  EXPECT_EQ(r->headers.get("Content-Type"), "application/json");
-  EXPECT_EQ(r->headers.get("Cache-Control"), "no-store");
-  EXPECT_EQ(json_field(r->body, "active_connections"), 1U);
-  EXPECT_EQ(json_field(r->body, "total_requests"), 1U); // counts itself
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 200);
+  EXPECT_EQ(r.headers.get("Content-Type"), "application/json");
+  EXPECT_EQ(r.headers.get("Cache-Control"), "no-store");
+  EXPECT_EQ(json_field(r.body, "active_connections"), 1U);
+  EXPECT_EQ(json_field(r.body, "total_requests"), 1U); // counts itself
 }
 
 TEST(StatsEndpoint, CountsRequestsIncludingErrors) {
@@ -167,9 +167,9 @@ TEST(StatsEndpoint, CountsRequestsIncludingErrors) {
   ASSERT_TRUE(client.read_response());
   client.get("/stats");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(json_field(r->body, "total_requests"), 3U);
-  EXPECT_EQ(json_field(r->body, "total_connections"), 1U);
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(json_field(r.body, "total_requests"), 3U);
+  EXPECT_EQ(json_field(r.body, "total_connections"), 1U);
 }
 
 TEST(StatsEndpoint, PostIs405) {
@@ -177,9 +177,9 @@ TEST(StatsEndpoint, PostIs405) {
   TestClient client(server.port());
   client.send("POST /stats HTTP/1.1\r\nHost: h\r\nContent-Length: 0\r\n\r\n");
   const auto r = client.read_response();
-  ASSERT_TRUE(r.has_value());
-  EXPECT_EQ(r->status, 405);
-  EXPECT_EQ(r->headers.get("Allow"), "GET, HEAD");
+  ASSERT_TRUE(r.received());
+  EXPECT_EQ(r.status, 405);
+  EXPECT_EQ(r.headers.get("Allow"), "GET, HEAD");
 }
 
 TEST(StatsEndpoint, ActiveConnectionsTrackOpenAndClose) {

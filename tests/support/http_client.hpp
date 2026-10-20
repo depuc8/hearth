@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <cstdint>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -18,9 +17,13 @@
 namespace hearth::test {
 
 struct ClientResponse {
+  /// 0 when no complete response arrived.
   int status = 0;
   http::Headers headers;
   std::string body;
+
+  [[nodiscard]] bool received() const { return status != 0; }
+  explicit operator bool() const { return received(); }
 };
 
 /// Minimal blocking HTTP/1.1 client over a raw socket, for integration tests.
@@ -58,15 +61,16 @@ public:
          "\r\n");
   }
 
-  /// Reads one response. nullopt if the server closed the connection (or
-  /// nothing arrived within the timeout) before a full response.
-  std::optional<ClientResponse>
+  /// Reads one response. Returns an empty response (status 0, false in a
+  /// boolean context) if the server closed the connection or nothing arrived
+  /// within the timeout before a full response.
+  ClientResponse
   read_response(bool head = false,
                 std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) {
     std::size_t header_end = std::string::npos;
     while ((header_end = buffer_.find("\r\n\r\n")) == std::string::npos) {
       if (!fill(timeout)) {
-        return std::nullopt;
+        return {};
       }
     }
     ClientResponse response;
@@ -95,7 +99,7 @@ public:
     }
     while (buffer_.size() < length) {
       if (!fill(timeout)) {
-        return std::nullopt;
+        return {};
       }
     }
     response.body = buffer_.substr(0, length);

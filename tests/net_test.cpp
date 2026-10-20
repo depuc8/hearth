@@ -72,19 +72,19 @@ TEST(Listener, BindsEphemeralPortAndAccepts) {
 
   Socket client = connect_loopback(listener.port());
   ASSERT_TRUE(hearth::net::wait_readable(listener.fd(), 2000ms));
-  auto accepted = listener.accept();
-  ASSERT_TRUE(accepted.has_value());
+  Socket accepted = listener.accept().value_or(Socket{});
+  ASSERT_TRUE(accepted.valid());
 
   ASSERT_TRUE(hearth::net::send_all(client.fd(), "ping", 1000ms));
-  ASSERT_TRUE(hearth::net::wait_readable(accepted->fd(), 2000ms));
+  ASSERT_TRUE(hearth::net::wait_readable(accepted.fd(), 2000ms));
   char buf[8];
-  const auto r = hearth::net::recv_some(accepted->fd(), buf, sizeof(buf));
+  const auto r = hearth::net::recv_some(accepted.fd(), buf, sizeof(buf));
   ASSERT_EQ(r.status, hearth::net::IoStatus::Ok);
   EXPECT_EQ(std::string(buf, r.bytes), "ping");
 
   client.reset();
-  ASSERT_TRUE(hearth::net::wait_readable(accepted->fd(), 2000ms));
-  EXPECT_EQ(hearth::net::recv_some(accepted->fd(), buf, sizeof(buf)).status,
+  ASSERT_TRUE(hearth::net::wait_readable(accepted.fd(), 2000ms));
+  EXPECT_EQ(hearth::net::recv_some(accepted.fd(), buf, sizeof(buf)).status,
             hearth::net::IoStatus::Closed);
 }
 

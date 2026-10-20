@@ -7,7 +7,8 @@
 #include <string_view>
 #include <system_error>
 
-#include <stdlib.h> // mkdtemp
+#include <stdlib.h> // mkdtemp (glibc)
+#include <unistd.h> // mkdtemp (macOS)
 
 namespace hearth::test {
 

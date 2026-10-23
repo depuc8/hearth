@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 272 64" width="272" height="64" role="img" aria-label="hearth">
+  <title>hearth</title>
+  <g fill="none" stroke="#E8590C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 17 6 32l10 15"/>
+    <path d="M48 17l10 15-10 15"/>
+    <path d="M23 55h18"/>
+  </g>
+  <path fill="#F59F00" d="M32 9l11 22.5a11 11 0 1 1-22 0z"/>
+  <path fill="#FFD43B" d="M32 24l5.5 11a5.5 5.5 0 1 1-11 0z"/>
+  <g transform="translate(86 -6)" stroke="#F3ECE6">
+    <g fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 20V56M0 42a10 10 0 0 1 20 0V56"/>
+      <path d="M33 44H57A12 12 0 1 0 53.49 52.49"/>
+      <circle cx="82" cy="44" r="12"/>
+      <path d="M94 32V56"/>
+      <path d="M107 32V56M107 44A12 12 0 0 1 119 32"/>
+      <path d="M138 22V50A6 6 0 0 0 144 56M132 32H146"/>
+      <path d="M159 20V56M159 42a10 10 0 0 1 20 0V56"/>
+    </g>
+  </g>
+</svg>

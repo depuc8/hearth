@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="hearth: a multithreaded HTTP/1.1 server in C++17">
+  <title>hearth: a multithreaded HTTP/1.1 server in C++17</title>
+  <defs>
+    <radialGradient id="glow" cx="0.28" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#E8590C" stop-opacity="0.35"/>
+      <stop offset="0.55" stop-color="#E8590C" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#E8590C" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#F3ECE6" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="640" fill="#171311"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+
+  <g transform="translate(120 160) scale(5)">
+    <g fill="none" stroke="#E8590C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 17 6 32l10 15"/>
+    <path d="M48 17l10 15-10 15"/>
+    <path d="M23 55h18"/>
+  </g>
+  <path fill="#F59F00" d="M32 9l11 22.5a11 11 0 1 1-22 0z"/>
+  <path fill="#FFD43B" d="M32 24l5.5 11a5.5 5.5 0 1 1-11 0z"/>
+  </g>
+
+  <g transform="translate(524 140) scale(2.4)" stroke="#F3ECE6">
+    <g fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 20V56M0 42a10 10 0 0 1 20 0V56"/>
+      <path d="M33 44H57A12 12 0 1 0 53.49 52.49"/>
+      <circle cx="82" cy="44" r="12"/>
+      <path d="M94 32V56"/>
+      <path d="M107 32V56M107 44A12 12 0 0 1 119 32"/>
+      <path d="M138 22V50A6 6 0 0 0 144 56M132 32H146"/>
+      <path d="M159 20V56M159 42a10 10 0 0 1 20 0V56"/>
+    </g>
+  </g>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+    <text x="522" y="362" fill="#F3ECE6" font-size="34" font-weight="600">A multithreaded HTTP/1.1 server in C++17</text>
+    <text x="522" y="408" fill="#A89D95" font-size="24">POSIX sockets · thread pool · keep-alive · zero dependencies</text>
+  </g>
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="22">
+    <rect x="522" y="446" width="472" height="48" rx="10" fill="#221C19" stroke="#3A302B"/>
+    <text x="542" y="478" fill="#F59F00">$</text>
+    <text x="566" y="478" fill="#F3ECE6">hearth --port 8080 --threads 8</text>
+  </g>
+</svg>

@@ -179,3 +179,21 @@ question, the choice, and why.
   received with `sigwait()` rather than relying on default dispositions,
   which the kernel ignores for PID 1. Checked: `podman stop` exits 0 in
   0.25 s.
+
+## Branding, docs and benchmarks
+
+- **The logo is hand-written SVG with the wordmark built from strokes**, not
+  `<text>`. It renders the same everywhere with no font dependency. The mark
+  (flame between `<` `>` brackets over an underscore "hearth floor") uses
+  only orange tones, so it works on light and dark backgrounds unchanged.
+  `logo.svg` switches its wordmark color with `prefers-color-scheme`;
+  `logo-dark.svg` is the explicit dark variant for the README's `<picture>`.
+- **The banner's tagline uses system fonts** (`<text>`). GitHub's social
+  preview has to be uploaded as PNG/JPG by hand anyway, so render
+  `assets/banner.svg` to PNG when setting it.
+- **wrk was not available, so its results table is a placeholder.** Building
+  wrk from source was blocked by the environment's permission policy.
+  `bench.sh` also runs ApacheBench when wrk is missing and `ab` is present,
+  and labels those results as supplementary and not wrk-comparable: ab is
+  single-threaded and saturates first. Every number in `bench/results.md` is
+  copied verbatim from tool output.

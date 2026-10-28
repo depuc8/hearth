@@ -8,5 +8,5 @@
 - [x] 6. Atomic metrics + /stats + concurrency tests (TSan clean)
 - [x] 7. clang-format, clang-tidy clean, all sanitizer presets green
 - [x] 8. CI workflows, Docker, release workflow
-- [ ] 9. Logo, banner, README, docs, benchmark script + real run
+- [x] 9. Logo, banner, README, docs, benchmark script + real run
 - [ ] 10. Fresh clone → build → test from README only

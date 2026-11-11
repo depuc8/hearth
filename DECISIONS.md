@@ -28,3 +28,16 @@ question, the choice, and why.
 - `origin` fetches over HTTPS (`https://github.com/depuc8/hearth.git`) as
   specified, but has an SSH **push** URL, because the build machine had SSH
   keys and no HTTPS credentials.
+
+## Networking
+
+- **poll(), not epoll.** poll() is POSIX, so one code path works on Linux and
+  macOS. Its O(n) cost per wakeup only matters with many thousands of idle
+  connections, far past this project's scale. An epoll/kqueue backend is on the
+  roadmap.
+- **getaddrinfo for binding**, so `--host` accepts IPv4, IPv6 or a hostname.
+  Default host is `0.0.0.0` (IPv4 any).
+- **SIGPIPE**: `MSG_NOSIGNAL` on Linux, `SO_NOSIGPIPE` on macOS, and the binary
+  also ignores SIGPIPE process-wide as a backstop.
+- **EMFILE/ENFILE on accept** leaves the connection in the backlog and retries
+  on the next loop iteration instead of throwing.

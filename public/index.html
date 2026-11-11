@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>hearth: it works</title>
+  <link rel="icon" href="/img/hearth-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <img class="logo" src="/img/hearth-mark.svg" alt="" width="96" height="96">
+    <h1>hearth is running</h1>
+    <p class="lede">
+      This page was served by <strong>hearth</strong>, a small multithreaded
+      HTTP/1.1 server written in C++17 on raw POSIX sockets.
+    </p>
+
+    <section class="cards">
+      <article>
+        <h2>Static files</h2>
+        <p>Everything under the document root, with correct
+          <code>Content-Type</code> and traversal protection.</p>
+      </article>
+      <article>
+        <h2>Keep-alive</h2>
+        <p>Persistent HTTP/1.1 connections, idle timeouts and a per-connection
+          request cap.</p>
+      </article>
+      <article>
+        <h2>Live metrics</h2>
+        <p>Atomic counters for connections and requests.
+          <a href="/stats">GET /stats</a></p>
+      </article>
+    </section>
+
+    <section class="stats" aria-live="polite">
+      <h2>Right now</h2>
+      <dl id="stats">
+        <div><dt>active connections</dt><dd data-key="active_connections">–</dd></div>
+        <div><dt>total connections</dt><dd data-key="total_connections">–</dd></div>
+        <div><dt>total requests</dt><dd data-key="total_requests">–</dd></div>
+        <div><dt>uptime (s)</dt><dd data-key="uptime_seconds">–</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer>
+    <a href="https://github.com/depuc8/hearth">github.com/depuc8/hearth</a>
+  </footer>
+
+  <script>
+    async function refresh() {
+      try {
+        const stats = await (await fetch("/stats", { cache: "no-store" })).json();
+        for (const dd of document.querySelectorAll("#stats dd")) {
+          dd.textContent = stats[dd.dataset.key] ?? "–";
+        }
+      } catch (_) { /* server stopped; keep last values */ }
+    }
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

@@ -157,3 +157,25 @@ question, the choice, and why.
   as "negative hits". It's the same bug as in `docs/atomic-counter-race.md`.
 - **`Socket::set_nodelay` returns bool instead of throwing.** Its only caller
   treats failure as harmless, and an empty catch block was hiding that.
+
+## CI, release and Docker
+
+- **CI pins clang-format/clang-tidy through pip**, matching the local
+  versions (23.1.x), so "formatted" means the same thing everywhere. The
+  build matrix uses each runner's default GCC/Clang (Ubuntu 24.04: GCC 13,
+  Clang 18). That combination was checked in an `ubuntu:24.04` container
+  before pushing.
+- **Sanitizer jobs set `vm.mmap_rnd_bits=28`.** Newer runner kernels use more
+  ASLR entropy than older sanitizer runtimes can map around.
+- **The Codecov upload never fails the build** (`fail_ci_if_error: false` plus
+  `continue-on-error`), so a missing `CODECOV_TOKEN` is harmless. The gcovr
+  text summary is also written to the job summary.
+- **Caching covers FetchContent's `_deps` directory**, keyed on
+  `tests/CMakeLists.txt`, which pins the GoogleTest URL and hash.
+- **The release binary links libstdc++/libgcc statically** and depends only
+  on glibc. Fully static glibc breaks `getaddrinfo`.
+- **The Docker image is Debian bookworm, build then slim runtime**, running as
+  an unprivileged user. hearth runs as PID 1. That is safe because SIGTERM is
+  received with `sigwait()` rather than relying on default dispositions,
+  which the kernel ignores for PID 1. Checked: `podman stop` exits 0 in
+  0.25 s.

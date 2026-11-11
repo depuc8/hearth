@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CLANG_FORMAT_VERSION: "23.1.5"
+  CLANG_TIDY_VERSION: "23.1.4"
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+        include:
+          - os: macos-latest
+            compiler: clang
+            build_type: Release
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Select compiler
+        shell: bash
+        run: |
+          if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+            echo "CXX=g++" >> "$GITHUB_ENV"
+          else
+            echo "CXX=clang++" >> "$GITHUB_ENV"
+          fi
+
+      - name: Cache FetchContent downloads
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ hashFiles('tests/CMakeLists.txt') }}
+          restore-keys: deps-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -j 4
+
+  format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "clang-format==${CLANG_FORMAT_VERSION}"
+      - run: scripts/lint.sh format-check
+
+  tidy:
+    name: clang-tidy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "clang-tidy==${CLANG_TIDY_VERSION}"
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Cache FetchContent downloads
+        uses: actions/cache@v4
+        with:
+          path: build/debug/_deps
+          key: deps-tidy-${{ hashFiles('tests/CMakeLists.txt') }}
+      - name: Configure (generates compile_commands.json)
+        run: cmake --preset debug -DCMAKE_CXX_COMPILER=clang++
+      - run: scripts/lint.sh tidy build/debug
+
+  sanitizers:
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [asan, tsan]
+    steps:
+      - uses: actions/checkout@v5
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      # Recent runner kernels use 32 bits of mmap randomization, which older
+      # sanitizer runtimes can't handle ("unexpected memory mapping").
+      - name: Reduce ASLR entropy for sanitizers
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Cache FetchContent downloads
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: deps-${{ matrix.preset }}-${{ hashFiles('tests/CMakeLists.txt') }}
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }}
+      - run: ctest --preset ${{ matrix.preset }} -j 4
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install gcovr
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Cache FetchContent downloads
+        uses: actions/cache@v4
+        with:
+          path: build/coverage/_deps
+          key: deps-coverage-${{ hashFiles('tests/CMakeLists.txt') }}
+      - run: cmake --preset coverage -DCMAKE_CXX_COMPILER=g++
+      - run: cmake --build --preset coverage
+      - run: ctest --preset coverage -j 4
+      - name: Generate report
+        run: |
+          gcovr --root . --filter 'src/' --exclude 'src/main.cpp' \
+                --xml coverage.xml --txt coverage.txt build/coverage
+          cat coverage.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        continue-on-error: true

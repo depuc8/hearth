@@ -11,8 +11,7 @@ using namespace hearth::http;
 TEST(Status, ReasonPhrases) {
   EXPECT_EQ(reason_phrase(Status::Ok), "OK");
   EXPECT_EQ(reason_phrase(Status::NotFound), "Not Found");
-  EXPECT_EQ(reason_phrase(Status::RequestHeaderFieldsTooLarge),
-            "Request Header Fields Too Large");
+  EXPECT_EQ(reason_phrase(Status::RequestHeaderFieldsTooLarge), "Request Header Fields Too Large");
   EXPECT_EQ(reason_phrase(static_cast<Status>(299)), "Unknown");
   EXPECT_EQ(code(Status::MethodNotAllowed), 405);
 }

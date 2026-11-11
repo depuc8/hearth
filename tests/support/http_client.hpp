@@ -53,15 +53,15 @@ public:
 
   /// Sends a GET with Host and optional extra header lines (each ending in CRLF).
   void get(std::string_view path, std::string_view extra = {}) {
-    send("GET " + std::string(path) + " HTTP/1.1\r\nHost: localhost\r\n" +
-         std::string(extra) + "\r\n");
+    send("GET " + std::string(path) + " HTTP/1.1\r\nHost: localhost\r\n" + std::string(extra) +
+         "\r\n");
   }
 
   /// Reads one response. nullopt if the server closed the connection (or
   /// nothing arrived within the timeout) before a full response.
-  std::optional<ClientResponse> read_response(bool head = false,
-                                              std::chrono::milliseconds timeout =
-                                                  std::chrono::milliseconds(5000)) {
+  std::optional<ClientResponse>
+  read_response(bool head = false,
+                std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) {
     std::size_t header_end = std::string::npos;
     while ((header_end = buffer_.find("\r\n\r\n")) == std::string::npos) {
       if (!fill(timeout)) {

@@ -48,8 +48,7 @@ IoResult recv_some(int fd, char *buffer, std::size_t length) noexcept {
   }
 }
 
-bool send_all(int fd, std::string_view data,
-              std::chrono::milliseconds timeout) noexcept {
+bool send_all(int fd, std::string_view data, std::chrono::milliseconds timeout) noexcept {
   while (!data.empty()) {
     const auto n = ::send(fd, data.data(), data.size(), kSendFlags);
     if (n > 0) {

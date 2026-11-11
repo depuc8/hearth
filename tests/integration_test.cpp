@@ -33,8 +33,8 @@ TEST(Integration, ServerAndDateHeadersArePresent) {
   const auto r = client.read_response();
   ASSERT_TRUE(r.has_value());
   EXPECT_EQ(r->headers.get("Server"), "hearth/0.1.0");
-  ASSERT_TRUE(r->headers.get("Date").has_value());
-  EXPECT_NE(r->headers.get("Date")->find(" GMT"), std::string_view::npos);
+  const auto date = r->headers.get("Date").value_or("");
+  EXPECT_NE(date.find(" GMT"), std::string_view::npos) << date;
 }
 
 TEST(Integration, HeadHasLengthButNoBody) {
@@ -74,7 +74,8 @@ TEST(Integration, WrongMethodIs405WithAllow) {
 
 TEST(Integration, TraversalOverTheWireIs403) {
   RunningServer server;
-  for (const char *path : {"/../etc/passwd", "/%2e%2e/%2e%2e/etc/passwd", "/..%2F..%2Fetc%2Fpasswd"}) {
+  for (const char *path :
+       {"/../etc/passwd", "/%2e%2e/%2e%2e/etc/passwd", "/..%2F..%2Fetc%2Fpasswd"}) {
     TestClient client(server.port());
     client.get(path);
     const auto r = client.read_response();
@@ -264,6 +265,7 @@ TEST(Integration, MoreIdleConnectionsThanWorkers) {
   config.threads = 2;
   RunningServer server(config);
   std::vector<std::unique_ptr<TestClient>> clients;
+  clients.reserve(20);
   for (int i = 0; i < 20; ++i) {
     clients.push_back(std::make_unique<TestClient>(server.port()));
   }

@@ -33,7 +33,7 @@ std::optional<std::string> percent_decode(std::string_view input) {
       if (hi < 0 || lo < 0) {
         return std::nullopt;
       }
-      c = static_cast<char>((hi << 4) | lo);
+      c = static_cast<char>((static_cast<unsigned>(hi) << 4U) | static_cast<unsigned>(lo));
       i += 2;
     }
     if (c == '\0') {

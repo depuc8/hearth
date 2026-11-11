@@ -2,6 +2,8 @@
 
 namespace hearth {
 
-std::string_view version() noexcept { return HEARTH_VERSION; }
+std::string_view version() noexcept {
+  return HEARTH_VERSION;
+}
 
 } // namespace hearth

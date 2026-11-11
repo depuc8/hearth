@@ -21,8 +21,8 @@ struct ServerConfig {
   /// After this many requests a connection is closed ("Connection: close").
   std::size_t max_requests_per_connection = 1000;
 
-  std::size_t max_header_bytes = 8 * 1024;
-  std::size_t max_body_bytes = 1024 * 1024;
+  std::size_t max_header_bytes = std::size_t{8} * 1024;
+  std::size_t max_body_bytes = std::size_t{1024} * 1024;
 };
 
 } // namespace hearth::server

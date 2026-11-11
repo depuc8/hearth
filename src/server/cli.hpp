@@ -3,6 +3,7 @@
 #include "server/config.hpp"
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace hearth::server {
@@ -20,6 +21,6 @@ struct CliOutcome {
 CliOutcome parse_cli(const std::vector<std::string> &args);
 
 /// Help text for --help.
-std::string usage();
+std::string_view usage();
 
 } // namespace hearth::server

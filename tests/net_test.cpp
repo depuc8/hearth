@@ -19,7 +19,9 @@ using hearth::net::Socket;
 
 namespace {
 
-bool fd_is_open(int fd) { return ::fcntl(fd, F_GETFD) != -1; }
+bool fd_is_open(int fd) {
+  return ::fcntl(fd, F_GETFD) != -1;
+}
 
 Socket connect_loopback(std::uint16_t port) {
   Socket s(::socket(AF_INET, SOCK_STREAM, 0));

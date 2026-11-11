@@ -41,13 +41,12 @@ TEST(Cli, HelpAndVersion) {
 }
 
 TEST(Cli, RejectsBadNumbers) {
-  for (const auto &args : std::vector<std::vector<std::string>>{
-           {"--port", "70000"},
-           {"--port", "-1"},
-           {"--port", "80x"},
-           {"--threads", "abc"},
-           {"--idle-timeout-ms", "0"},
-           {"--max-requests", "0"}}) {
+  for (const auto &args : std::vector<std::vector<std::string>>{{"--port", "70000"},
+                                                                {"--port", "-1"},
+                                                                {"--port", "80x"},
+                                                                {"--threads", "abc"},
+                                                                {"--idle-timeout-ms", "0"},
+                                                                {"--max-requests", "0"}}) {
     const auto out = parse_cli(args);
     EXPECT_EQ(out.action, CliOutcome::Action::Error) << args[0] << " " << args[1];
     EXPECT_FALSE(out.message.empty());

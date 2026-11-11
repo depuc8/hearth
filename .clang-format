@@ -1,0 +1,8 @@
+---
+BasedOnStyle: LLVM
+ColumnLimit: 100
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: All
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+...

@@ -32,7 +32,7 @@ jobs:
             compiler: clang
             build_type: Release
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install Ninja (Linux)
         if: runner.os == 'Linux'
@@ -52,7 +52,7 @@ jobs:
           fi
 
       - name: Cache FetchContent downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/_deps
           key: deps-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ hashFiles('tests/CMakeLists.txt') }}
@@ -71,8 +71,8 @@ jobs:
     name: clang-format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install "clang-format==${CLANG_FORMAT_VERSION}"
@@ -82,14 +82,14 @@ jobs:
     name: clang-tidy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install "clang-tidy==${CLANG_TIDY_VERSION}"
       - run: sudo apt-get update && sudo apt-get install -y ninja-build
       - name: Cache FetchContent downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/debug/_deps
           key: deps-tidy-${{ hashFiles('tests/CMakeLists.txt') }}
@@ -105,14 +105,14 @@ jobs:
       matrix:
         preset: [asan, tsan]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: sudo apt-get update && sudo apt-get install -y ninja-build
       # Recent runner kernels use 32 bits of mmap randomization, which older
       # sanitizer runtimes can't handle ("unexpected memory mapping").
       - name: Reduce ASLR entropy for sanitizers
         run: sudo sysctl vm.mmap_rnd_bits=28
       - name: Cache FetchContent downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/${{ matrix.preset }}/_deps
           key: deps-${{ matrix.preset }}-${{ hashFiles('tests/CMakeLists.txt') }}
@@ -124,14 +124,14 @@ jobs:
     name: coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install gcovr
       - run: sudo apt-get update && sudo apt-get install -y ninja-build
       - name: Cache FetchContent downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/coverage/_deps
           key: deps-coverage-${{ hashFiles('tests/CMakeLists.txt') }}
@@ -144,7 +144,7 @@ jobs:
                 --xml coverage.xml --txt coverage.txt build/coverage
           cat coverage.txt >> "$GITHUB_STEP_SUMMARY"
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}

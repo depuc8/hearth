@@ -12,7 +12,7 @@ jobs:
     name: Linux x86_64 binary
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - run: sudo apt-get update && sudo apt-get install -y ninja-build
 
@@ -41,7 +41,7 @@ jobs:
           echo "archive=dist/${name}.tar.gz" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             ${{ steps.package.outputs.archive }}

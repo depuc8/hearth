@@ -16,8 +16,10 @@ using std::chrono::milliseconds;
 
 constexpr milliseconds kMaxPollWait{1000};
 
-net::ConnectionOptions make_connection_options(const ServerConfig &config) {
+net::ConnectionOptions make_connection_options(const ServerConfig &config,
+                                               Metrics &metrics) {
   net::ConnectionOptions options;
+  options.metrics = &metrics;
   options.limits.max_header_bytes = config.max_header_bytes;
   options.limits.max_body_bytes = config.max_body_bytes;
   options.max_requests = config.max_requests_per_connection;
@@ -36,7 +38,7 @@ std::size_t resolve_thread_count(std::size_t requested) noexcept {
 
 Server::Server(ServerConfig config)
     : config_(std::move(config)),
-      connection_options_(make_connection_options(config_)),
+      connection_options_(make_connection_options(config_, metrics_)),
       listener_(config_.host, config_.port),
       pool_(resolve_thread_count(config_.threads)) {}
 

@@ -5,6 +5,7 @@
 #include "net/socket.hpp"
 #include "router/router.hpp"
 #include "server/config.hpp"
+#include "server/metrics.hpp"
 #include "server/thread_pool.hpp"
 
 #include <atomic>
@@ -39,6 +40,7 @@ public:
   router::Router &router() noexcept { return router_; }
   [[nodiscard]] const ServerConfig &config() const noexcept { return config_; }
   [[nodiscard]] std::uint16_t port() const noexcept { return listener_.port(); }
+  [[nodiscard]] const Metrics &metrics() const noexcept { return metrics_; }
 
   /// Serves until stop() is called. On return every connection is closed and
   /// all in-flight requests have been answered.
@@ -57,6 +59,8 @@ private:
   void adopt_returned();
 
   ServerConfig config_;
+  // Declared before anything holding connections so it outlives them.
+  Metrics metrics_;
   net::ConnectionOptions connection_options_;
   net::Listener listener_;
   net::WakePipe wake_;

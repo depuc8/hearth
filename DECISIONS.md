@@ -127,3 +127,18 @@ question, the choice, and why.
   are answered with `Connection: close`.
 - **Sanitizer presets use Clang.** The dev machine had compiler-rt but not
   GCC's libasan/libtsan, and Clang's TSan is the reference implementation.
+
+## Metrics
+
+- **Counters are `std::atomic` with relaxed ordering.** They don't guard
+  other data, so only atomicity is needed. See `docs/atomic-counter-race.md`.
+- **`total_requests` counts every answered request, errors included** (400s,
+  404s, 431s...). It is incremented *before* the handler runs, so `/stats`
+  counts itself, and by the time a client sees a response its request is
+  already counted, which makes the integration tests deterministic.
+- **Metrics live in `server/` but Connection takes a nullable `Metrics*`.**
+  That's a small layering shortcut (`net/` includes one header-only
+  `server/` type) and simpler than an observer interface.
+- **The race demo is opt-in** (`HEARTH_BUILD_RACE_DEMO`), so the default TSan
+  run has zero reports. In a TSan build it adds two CTest cases that *expect*
+  a TSan report for the plain int and none for the atomic.

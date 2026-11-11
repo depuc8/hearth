@@ -41,3 +41,29 @@ question, the choice, and why.
   also ignores SIGPIPE process-wide as a backstop.
 - **EMFILE/ENFILE on accept** leaves the connection in the backlog and retries
   on the next loop iteration instead of throwing.
+
+## HTTP parsing
+
+- **Bare LF line endings are accepted** (RFC 9112 §2.2 allows it). A bare CR
+  anywhere else in a line is rejected with 400.
+- **Leading empty lines before the request line are ignored** (RFC 9112 §2.2).
+  They still count toward the header-size limit, so a CRLF flood is bounded.
+- **The header limit covers the request line plus all header lines.** If the
+  limit is hit while still in the request line the answer is 414; otherwise
+  431. The limit is checked as bytes arrive, so a header with no newline cannot
+  grow without bound.
+- **Only HTTP/1.0 and HTTP/1.1 are accepted.** A well-formed but different
+  version (`HTTP/2.0`, `HTTP/1.2`) gets 505; a malformed one gets 400.
+- **Host is required on HTTP/1.1, and more than one Host is a 400** (RFC 9112
+  §3.2).
+- **Transfer-Encoding is not supported**: 501. Transfer-Encoding together with
+  Content-Length is a 400 (request-smuggling defence).
+- **Duplicate Content-Length** is accepted only if every value is identical.
+  Comma-separated lists like `5, 5` are rejected.
+- **The path is percent-decoded once, in the parser.** The router and the
+  static handler see the decoded path; `%00` is rejected. The query string
+  stays raw.
+- **Absolute-form targets** (`GET http://host/x`) are reduced to their path;
+  the authority is ignored in favour of Host.
+- **`#` in the target is rejected**: clients must not send fragments.
+- **Responses always say `HTTP/1.1`**, even to 1.0 clients (RFC 9110 §6.2).

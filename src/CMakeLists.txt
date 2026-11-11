@@ -1,6 +1,12 @@
 add_library(
   hearth_core STATIC
   version.cpp
+  http/headers.cpp
+  http/mime.cpp
+  http/parser.cpp
+  http/response.cpp
+  http/status.cpp
+  http/url.cpp
   net/io.cpp
   net/listener.cpp
   net/socket.cpp)

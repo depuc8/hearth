@@ -7,10 +7,15 @@ add_library(
   http/response.cpp
   http/status.cpp
   http/url.cpp
+  net/connection.cpp
   net/io.cpp
   net/listener.cpp
   net/socket.cpp
   router/router.cpp
+  server/app.cpp
+  server/cli.cpp
+  server/server.cpp
+  server/thread_pool.cpp
   static/static_handler.cpp)
 
 target_include_directories(hearth_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

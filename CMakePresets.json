@@ -30,6 +30,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
         "HEARTH_SANITIZE": "address;undefined"
       }
     },
@@ -39,6 +40,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
         "HEARTH_SANITIZE": "thread"
       }
     },

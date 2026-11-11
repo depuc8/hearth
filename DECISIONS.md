@@ -67,3 +67,27 @@ question, the choice, and why.
   the authority is ignored in favour of Host.
 - **`#` in the target is rejected**: clients must not send fragments.
 - **Responses always say `HTTP/1.1`**, even to 1.0 clients (RFC 9110 §6.2).
+
+## Routing
+
+- **Precedence: exact > longest prefix > first registered.** Prefixes match on
+  segment boundaries (`/api` matches `/api/x`, not `/apix`).
+- **Dispatch falls through by method.** If the most specific route doesn't
+  accept the method, a less specific one that does gets the request. Only
+  when no path-matching route accepts it is the answer 405, and `Allow` is the
+  union of methods from every path-matching route.
+- **GET routes also answer HEAD.** The connection layer drops the body but
+  keeps Content-Length.
+- **Methods are case-sensitive** (RFC 9110 §9.1), so `get` is a 405, not GET.
+
+## Static files
+
+- **Any `..` segment is a 403, even one that would stay inside the root.**
+  Rejecting is simpler and safer than normalizing. Canonicalization plus a
+  component-wise containment check is the second layer and also catches
+  symlinks that escape the root.
+- **Directories serve `index.html`, with or without a trailing slash.** There
+  is no redirect to the slash form, so relative links inside `/docs` (no
+  slash) resolve against `/`. Kept simple; noted under limitations.
+- **Files are read fully into memory.** That's fine for a demo site and
+  bounded by what's on disk. `sendfile()`/streaming is on the roadmap.
